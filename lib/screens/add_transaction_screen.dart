@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../controllers/transaction_controller.dart';
 import '../models/transaction_model.dart';
 
@@ -12,29 +13,49 @@ class AddTransactionScreen extends StatefulWidget {
 
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final _titleCtrl = TextEditingController();
   final _amountCtrl = TextEditingController();
 
-  bool _isIncome = false; // padrão: saída
+  bool _isIncome = false;
   DateTime _date = DateTime.now();
   bool _saving = false;
 
-  // Controller local (MVP). Depois, se quiser, a gente centraliza com Provider.
-  final _controller = TransactionController();
+  TransactionController? _controller;
+  TransactionModel? _editing;
+  bool _loadedArgs = false;
 
   @override
   void dispose() {
     _titleCtrl.dispose();
     _amountCtrl.dispose();
-    _controller.dispose();
     super.dispose();
   }
 
-  String _dateLabel(DateTime d) => DateFormat('dd/MM/yyyy').format(d);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_loadedArgs) return;
+    _loadedArgs = true;
+
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map) {
+      _controller = args['controller'] as TransactionController?;
+      _editing = args['edit'] as TransactionModel?;
+    }
+
+    if (_editing != null) {
+      _titleCtrl.text = _editing!.title;
+      _amountCtrl.text = _editing!.amount
+          .toStringAsFixed(2)
+          .replaceAll('.', ',');
+      _isIncome = _editing!.isIncome;
+      _date = _editing!.date;
+    }
+  }
+
+  String _dateLabel(DateTime d) => DateFormat('dd/MM/yyyy', 'pt_BR').format(d);
 
   double _parseAmount(String raw) {
-    // aceita "12,50" ou "12.50"
     final normalized = raw.replaceAll('.', '').replaceAll(',', '.');
     return double.tryParse(normalized) ?? 0.0;
   }
@@ -51,32 +72,43 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Future<void> _save() async {
+    if (_controller == null) return;
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _saving = true);
 
-    final t = TransactionModel(
+    final model = TransactionModel(
+      id: _editing?.id,
       title: _titleCtrl.text.trim(),
       amount: _parseAmount(_amountCtrl.text.trim()),
       isIncome: _isIncome,
       date: _date,
     );
 
-    await _controller.add(t);
+    if (_editing == null) {
+      await _controller!.add(model);
+    } else {
+      await _controller!.update(model);
+    }
 
     setState(() => _saving = false);
-
     if (!mounted) return;
-    Navigator.pop(context, true); // avisa a Home pra recarregar
+    Navigator.pop(context, true);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEdit = _editing != null;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Novo lançamento')),
-      body: SingleChildScrollView(
-        child: Padding(
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+        title: Text(isEdit ? 'Editar lançamento' : 'Novo lançamento'),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Form(
             key: _formKey,
             child: Column(
@@ -103,10 +135,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 TextFormField(
                   controller: _titleCtrl,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Descrição',
-                    hintText: 'Ex: Mercado, gasolina, salário...',
-                  ),
+                  decoration: const InputDecoration(labelText: 'Descrição'),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
                       return 'Informe uma descrição';
@@ -136,7 +165,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
                 InkWell(
                   onTap: _pickDate,
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                   child: InputDecorator(
                     decoration: const InputDecoration(labelText: 'Data'),
                     child: Row(
@@ -148,12 +177,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 12),
+                const SizedBox(height: 18),
 
                 SizedBox(
                   width: double.infinity,
-                  height: 52,
+                  height: 54,
                   child: FilledButton(
                     onPressed: _saving ? null : _save,
                     child: _saving
@@ -165,6 +193,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         : const Text('Salvar'),
                   ),
                 ),
+
+                SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
               ],
             ),
           ),

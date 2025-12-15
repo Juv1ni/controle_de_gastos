@@ -1,43 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../controllers/transaction_controller.dart';
 import '../core/app_colors.dart';
 
-class SummaryScreen extends StatefulWidget {
+class SummaryScreen extends StatelessWidget {
   const SummaryScreen({super.key});
-
-  @override
-  State<SummaryScreen> createState() => _SummaryScreenState();
-}
-
-class _SummaryScreenState extends State<SummaryScreen> {
-  final controller = TransactionController();
-
-  @override
-  void initState() {
-    super.initState();
-    controller.load();
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
 
   String _brl(double v) =>
       NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$').format(v);
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (_, _) {
-        return Scaffold(
-          appBar: AppBar(title: const Text('Resumo')),
-          body: Padding(
+    final ctrl =
+        (ModalRoute.of(context)?.settings.arguments is TransactionController)
+        ? (ModalRoute.of(context)!.settings.arguments as TransactionController)
+        : TransactionController(); // fallback
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Resumo')),
+      body: AnimatedBuilder(
+        animation: ctrl,
+        builder: (_, _) {
+          return Padding(
             padding: const EdgeInsets.all(16),
-            child: controller.isLoading
+            child: ctrl.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : Column(
                     children: [
@@ -48,15 +35,15 @@ class _SummaryScreenState extends State<SummaryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Saldo',
+                                'Saldo do mês',
                                 style: TextStyle(color: AppColors.subtext),
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                _brl(controller.balance),
+                                _brl(ctrl.balance),
                                 style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w900,
                                 ),
                               ),
                               const SizedBox(height: 14),
@@ -65,14 +52,14 @@ class _SummaryScreenState extends State<SummaryScreen> {
                                   Expanded(
                                     child: _mini(
                                       'Entradas',
-                                      _brl(controller.totalIncome),
+                                      _brl(ctrl.totalIncome),
                                     ),
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: _mini(
                                       'Saídas',
-                                      _brl(controller.totalExpense),
+                                      _brl(ctrl.totalExpense),
                                     ),
                                   ),
                                 ],
@@ -84,21 +71,22 @@ class _SummaryScreenState extends State<SummaryScreen> {
                       const SizedBox(height: 12),
                       Card(
                         child: ListTile(
-                          title: const Text('Lançamentos'),
+                          title: const Text(
+                            'Lançamentos',
+                            style: TextStyle(fontWeight: FontWeight.w800),
+                          ),
                           subtitle: Text(
-                            '${controller.items.length} no total • '
-                            '${controller.items.where((e) => e.isIncome).length} entradas • '
-                            '${controller.items.where((e) => !e.isIncome).length} saídas',
+                            '${ctrl.items.length} no mês',
                             style: const TextStyle(color: AppColors.subtext),
                           ),
-                          trailing: const Icon(Icons.receipt_long),
+                          trailing: const Icon(Icons.receipt_long_outlined),
                         ),
                       ),
                     ],
                   ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -106,7 +94,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
@@ -114,7 +102,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
         children: [
           Text(label, style: const TextStyle(color: AppColors.subtext)),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w700)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
         ],
       ),
     );
