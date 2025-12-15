@@ -1,16 +1,88 @@
-# controle_de_gastos
+# 💰 Controle de Gastos – Flutter
 
-A new Flutter project.
+Aplicativo mobile **minimalista** para controle de gastos pessoais, desenvolvido em **Flutter** utilizando **arquitetura MVC** e **persistência local com SQLite**.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## ✨ Funcionalidades
 
-A few resources to get you started if this is your first Flutter project:
+- ➕ Adicionar entradas e saídas
+- 🗑️ Remover lançamentos
+- 📊 Resumo financeiro (entradas, saídas e saldo)
+- 💾 Armazenamento local (SQLite)
+- 📅 Seleção de data
+- 🎨 Interface limpa e minimalista (Material 3)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 📱 Telas
+
+- **Home**
+  - Saldo atual
+  - Lista de lançamentos
+- **Novo Lançamento**
+  - Entrada ou saída
+  - Valor, descrição e data
+- **Resumo**
+  - Total de entradas
+  - Total de saídas
+  - Saldo final
+
+---
+
+## 🧱 Arquitetura
+
+O projeto utiliza **MVC (Model–View–Controller)** com separação clara de responsabilidades:
+
+lib/
+├── core/ # Tema, cores e rotas
+├── models/ # Modelos de dados
+├── services/ # Acesso ao banco (SQLite)
+├── controllers/ # Lógica e estado
+├── screens/ # Telas
+├── widgets/ # Componentes reutilizáveis
+└── main.dart
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+- Flutter (Material 3)
+- Dart
+- SQLite (sqflite)
+- intl (formatação de moeda e datas)
+
+---
+
+## ▶️ Como executar
+
+```bash
+1. Clone o repositório
+git clone https://github.com/seu-usuario/controle-gastos-flutter.git;
+
+2. Instale as dependências
+flutter pub get
+
+3. Execute o projeto
+flutter run
+
+🚀 Próximas melhorias (roadmap)
+
+Filtro por mês
+
+Edição de lançamentos
+
+Exportação de dados
+
+Categorias (versão futura)
+
+Dark Mode
+
+👨‍💻 Autor
+
+Gustavo
+Desenvolvedor Flutter em evolução 🚀
+Projeto criado com foco em organização, código limpo e boas práticas.
+
+📌 Este app é um MVP funcional e faz parte de um portfólio em constante evolução.
+```
